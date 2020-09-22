@@ -9,6 +9,20 @@ use Model\Entity\Product;
 class ProductRepository
 {
     /**
+     * @var array
+     */
+    private $productList = [];
+
+    public function __construct(){
+        foreach ($this->getDataFromSource() as $item) {
+            $this->productList[] = new Product(
+                $item['id'],
+                $item['name'],
+                $item['price']
+            );
+        }
+    }
+    /**
      * Поиск продуктов по массиву id
      * @param int[] $ids
      * @return ProductRepository[]
@@ -19,16 +33,14 @@ class ProductRepository
             return [];
         }
 
-        $productList = [];
-        foreach ($this->getDataFromSource(['id' => $ids]) as $item) {
-            $productList[] = new Product(
-                $item['id'],
-                $item['name'],
-                $item['price']
-            );
+        $productSearch = [];
+        foreach ($this->productList as $item) {
+            if (in_array($item('id'), $ids)) {
+                $productSearch[] = clone $item;
+            }
         }
 
-        return $productList;
+        return $productSearch;
     }
 
     /**
@@ -37,16 +49,7 @@ class ProductRepository
      */
     public function fetchAll(): array
     {
-        $productList = [];
-        foreach ($this->getDataFromSource() as $item) {
-            $productList[] = new Product(
-                $item['id'],
-                $item['name'],
-                $item['price']
-            );
-        }
-
-        return $productList;
+        return $this->productList;
     }
 
     /**
