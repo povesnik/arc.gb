@@ -12,6 +12,7 @@ class ProductService
 {
     /**
      * Получаем информацию по конкретному продукту
+     * public function getInfo - Шаблонный метод
      * @param int $id
      * @return Product|null
      */

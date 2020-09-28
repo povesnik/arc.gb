@@ -1,6 +1,11 @@
 <?php
 
+use Model\Entity\NameComparator;
+use Model\Entity\PriceComparator;
 use Model\Entity\Product;
+use Model\Entity\ProductCollection;
+
+$collection = new ProductCollection();
 
 /**
  * @var Closure $renderLayout 
@@ -8,14 +13,14 @@ use Model\Entity\Product;
  * @var Closure $path
  */
 
-$body = function () use ($productList, $path) {
+
 ?>
     <table cellpadding="40" cellspacing="0" border="0">
         <tr><td colspan="3" align="center">Наши курсы</td></tr>
         <tr>
             <td colspan="3" align="left">Сортировать по:
-                <a href="<?= $path('product_list') ?>?sort=price">Цене</a>
-                <a href="<?= $path('product_list') ?>?sort=name">Названию</a>
+                <a href="<?= $path($collection->sort(new PriceComparator(), $productList)) ?>?sort=price">Цене</a>
+                <a href="<?= $path($collection->sort(new NameComparator(), $productList)) ?>?sort=name">Названию</a>
             </td>
         </tr>
 
@@ -32,7 +37,6 @@ $body = function () use ($productList, $path) {
         <?php endfor; ?>
     </table>
 <?php
-};
 
 $renderLayout(
     'main_template.html.php',
