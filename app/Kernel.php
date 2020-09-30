@@ -2,10 +2,12 @@
 
 declare(strict_types = 1);
 
+use Framework\Command\Configs;
+use Framework\Command\Distributor;
+use Framework\Command\Register;
+use Framework\Command\RemoteControl;
+use Framework\Command\Routes;
 use Framework\Registry;
-use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,24 +16,9 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\RouteCollection;
 
 class Kernel
 {
-    /**
-     * @var RouteCollection
-     */
-    protected $routeCollection;
-
-    /**
-     * @var ContainerBuilder
-     */
-    protected $containerBuilder;
-
-    public function __construct(ContainerBuilder $containerBuilder)
-    {
-        $this->containerBuilder = $containerBuilder;
-    }
 
     /**
      * @param Request $request
@@ -39,33 +26,15 @@ class Kernel
      */
     public function handle(Request $request): Response
     {
-        $this->registerConfigs();
-        $this->registerRoutes();
+        $configs = new Configs();
+        $routes = new Routes();
+        $configsDistributor = new Distributor($configs);
+        $routesDistributor = new Distributor($routes);
+        $remote = new RemoteControl();
+        $remote->submit($configsDistributor);
+        $remote->submit($routesDistributor);
 
         return $this->process($request);
-    }
-
-    /**
-     * @return void
-     */
-    protected function registerConfigs(): void
-    {
-        try {
-            $fileLocator = new FileLocator(__DIR__ . DIRECTORY_SEPARATOR . 'config');
-            $loader = new PhpFileLoader($this->containerBuilder, $fileLocator);
-            $loader->load('parameters.php');
-        } catch (\Throwable $e) {
-            die('Cannot read the config file. File: ' . __FILE__ . '. Line: ' . __LINE__);
-        }
-    }
-
-    /**
-     * @return void
-     */
-    protected function registerRoutes(): void
-    {
-        $this->routeCollection = require __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routing.php';
-        $this->containerBuilder->set('route_collection', $this->routeCollection);
     }
 
     /**
